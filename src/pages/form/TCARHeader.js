@@ -279,6 +279,18 @@ export default function TCARHeader() {
         }),
       );
     }
+
+    if (editedValue.type === 'attachment') {
+      setAttachment(
+        attachment.map((item, index) => {
+          if (index === editedValue.index) {
+            return detail;
+          } else {
+            return item;
+          }
+        }),
+      );
+    }
   };
 
   // Notes Method
