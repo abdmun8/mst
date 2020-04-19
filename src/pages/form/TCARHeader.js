@@ -298,10 +298,10 @@ export default function TCARHeader() {
   const removeNotes = (idx) =>
     setNotesRemarks(notesRemarks.filter((item, index) => index !== idx));
 
-  // Notes Method
+  // Attachment Method
   const addAttachment = (detail) => setAttachment([...attachment, detail]);
   const removeAttachment = (idx) =>
-    setAttachment(notesRemarks.filter((item, index) => index !== idx));
+    setAttachment(attachment.filter((item, index) => index !== idx));
 
   // cash detail method
   const addCashDetail = (detail) => setCashdetail([...cashDetail, detail]);
