@@ -35,12 +35,12 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function TCARDetail({
+export default function CashDetail({
   show,
   setShow,
+  addItem,
   editedValue,
   updateItem,
-  addItem,
   detailForm,
   setDetailForm,
 }) {
@@ -66,6 +66,10 @@ export default function TCARDetail({
   };
 
   const setFormValue = (value, key) => {
+    // number only
+    if (key === 'cashRequested' && isNaN(Number(value))) {
+      value = value.substr(0, value.length - 1);
+    }
     setDetailForm({...detailForm, [key]: value});
   };
 
@@ -79,52 +83,38 @@ export default function TCARDetail({
       animated="true"
       visible={show}>
       <ScrollView style={styles.content}>
-        <Text style={styles.sectionTitle}>TCAR Detail</Text>
+        <Text style={styles.sectionTitle}>Cash Detail</Text>
         <View style={styles.buttonDetailContainer}>
           <Form>
             <Item stackedLabel>
-              <Label>Date</Label>
-              <DatePicker
-                defaultDate={new Date()}
-                value={detailForm.date}
-                locale={'en'}
-                modalTransparent={false}
-                animationType={'fade'}
-                androidMode={'default'}
-                onDateChange={(date) =>
-                  setFormValue({...detailForm, date: date})
-                }
-                disabled={false}
-              />
-            </Item>
-            <Item stackedLabel>
-              <Label>Transport Method</Label>
+              <Label>Expense Type</Label>
               <Input
-                onChangeText={(text) => setFormValue(text, 'transportMethod')}
-                value={detailForm.transportMethod}
+                onChangeText={(text) => setFormValue(text, 'expenseType')}
+                value={detailForm.expenseType}
               />
             </Item>
-            {isSaved && detailForm.transportMethod === '' ? (
+            {isSaved && detailForm.expenseType === '' ? (
               <Text style={styles.errorText}>Please fill this field</Text>
             ) : null}
             <Item stackedLabel>
-              <Label>Description</Label>
+              <Label>Currency</Label>
               <Input
-                onChangeText={(text) => setFormValue(text, 'description')}
-                value={detailForm.description}
+                onChangeText={(text) => setFormValue(text, 'currency')}
+                value={detailForm.currency}
               />
             </Item>
-            {isSaved && detailForm.description === '' ? (
+            {isSaved && detailForm.currency === '' ? (
               <Text style={styles.errorText}>Please fill this field</Text>
             ) : null}
             <Item stackedLabel>
-              <Label>Purpose</Label>
+              <Label>Cash requested</Label>
               <Input
-                onChangeText={(text) => setFormValue(text, 'purpose')}
-                value={detailForm.purpose}
+                keyboardType={'numeric'}
+                onChangeText={(text) => setFormValue(text, 'cashRequested')}
+                value={String(detailForm.cashRequested)}
               />
             </Item>
-            {isSaved && detailForm.purpose === '' ? (
+            {isSaved && detailForm.cashRequested === '' ? (
               <Text style={styles.errorText}>Please fill this field</Text>
             ) : null}
           </Form>

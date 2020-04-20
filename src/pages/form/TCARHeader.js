@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   View,
@@ -9,6 +9,9 @@ import {
 import {Button, Text, Form, Label, Item, DatePicker, Input} from 'native-base';
 import moment from 'moment';
 import TCARDetail from './TCARDetailModal';
+import Notes from './NotesModal';
+import CashDetailModal from './CashDetailModal';
+import AttachmentModal from './AttachmentModal';
 
 const styles = StyleSheet.create({
   container: {
@@ -51,7 +54,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   divider: {height: 20, width: '100%'},
-  buttonHeader: {justifyContent: 'center'},
+  buttonHeader: {justifyContent: 'center', flexGrow: 1, borderRadius: 25},
   tcarDetailContainer: {
     marginVertical: 10,
     marginHorizontal: 10,
@@ -111,6 +114,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   buttonItem: {marginHorizontal: 5},
+  marginTotal: {marginLeft: 10, marginTop: 5},
 });
 
 const Divider = () => <View style={styles.divider} />;
@@ -142,7 +146,7 @@ export default function TCARHeader() {
   const [notesRemarks, setNotesRemarks] = useState([
     {date: new Date(), notes: 'tes notes', by: 'Anonymous'},
   ]);
-  const [cashdetail, setCashdetail] = useState([
+  const [cashDetail, setCashdetail] = useState([
     {
       expenseType: 'Domestic Travel - Airport Tax',
       currency: 'IDR',
@@ -153,14 +157,28 @@ export default function TCARHeader() {
     {date: new Date(), filename: 'tes.xlsx'},
   ]);
 
+  // form modal
+  const [notesForm, setNotesForm] = useState({});
+  const [attachmentForm, setAttachmentForm] = useState({});
+  const [cashDetailForm, setCashDetailForm] = useState({});
+  const [detailForm, setDetailForm] = useState({});
+  const [editedValue, setEditedvalue] = useState({index: -1, type: ''});
+
+  // show modal
+  const [showTCARDetail, setShowTCARDetail] = useState(false);
+  const [showCashDetailForm, setShowCashDetailForm] = useState(false);
+  const [showNotesForm, setShowNotesForm] = useState(false);
+  const [showAttachmentForm, setShowAttachmentForm] = useState(false);
+
   const handleSave = () => {
     setIsSaved(true);
     let header = true;
     for (let [key, value] of Object.entries(tcarHeader)) {
-      if (value !== '' || value !== null) {
+      if (value === '' || value === null) {
         header = false;
       }
     }
+
     if (!header) {
       ToastAndroid.showWithGravity(
         'Please Check Header Form',
@@ -169,7 +187,7 @@ export default function TCARHeader() {
       );
       return;
     }
-    if (TCARDetail.items.length === 0) {
+    if (tcarDetail.items.length === 0) {
       ToastAndroid.showWithGravity(
         'Please add Cash detail',
         ToastAndroid.SHORT,
@@ -177,7 +195,7 @@ export default function TCARHeader() {
       );
       return;
     }
-    if (cashdetail.length === 0) {
+    if (cashDetail.length === 0) {
       ToastAndroid.showWithGravity(
         'Please add Cash detail',
         ToastAndroid.SHORT,
@@ -185,7 +203,8 @@ export default function TCARHeader() {
       );
       return;
     }
-    if (!attachment.length) {
+
+    if (attachment.length === 0) {
       ToastAndroid.showWithGravity(
         'Please add Attachment',
         ToastAndroid.SHORT,
@@ -204,6 +223,7 @@ export default function TCARHeader() {
   // set travel type
   const setTravelType = (value) =>
     setTcarDetail({...tcarDetail, travelType: value});
+
   // set Header Form
   const setHeaderForm = (value, key) => {
     // employee SN number only
@@ -212,6 +232,81 @@ export default function TCARHeader() {
     }
     setTcarHeader({...tcarHeader, [key]: value});
   };
+
+  // tcardetail Method
+  const addTCARDetail = (detail) =>
+    setTcarDetail({...tcarDetail, items: [...tcarDetail.items, detail]});
+  const removeTCARDetail = (idx) =>
+    setTcarDetail({
+      ...tcarDetail,
+      items: tcarDetail.items.filter((item, index) => index !== idx),
+    });
+  const updateItem = (detail) => {
+    if (editedValue.type === 'cardetail') {
+      const newItems = tcarDetail.items.map((item, index) => {
+        if (index === editedValue.index) {
+          return detail;
+        } else {
+          return item;
+        }
+      });
+      setTcarDetail({
+        ...tcarDetail,
+        items: newItems,
+      });
+    }
+
+    if (editedValue.type === 'cashdetail') {
+      setCashdetail(
+        cashDetail.map((item, index) => {
+          if (index === editedValue.index) {
+            return detail;
+          } else {
+            return item;
+          }
+        }),
+      );
+    }
+
+    if (editedValue.type === 'notes') {
+      setNotesRemarks(
+        notesRemarks.map((item, index) => {
+          if (index === editedValue.index) {
+            return detail;
+          } else {
+            return item;
+          }
+        }),
+      );
+    }
+  };
+
+  // Notes Method
+  const addNotes = (detail) => setNotesRemarks([...notesRemarks, detail]);
+  const removeNotes = (idx) =>
+    setNotesRemarks(notesRemarks.filter((item, index) => index !== idx));
+
+  // Notes Method
+  const addAttachment = (detail) => setAttachment([...attachment, detail]);
+  const removeAttachment = (idx) =>
+    setAttachment(notesRemarks.filter((item, index) => index !== idx));
+
+  // cash detail method
+  const addCashDetail = (detail) => setCashdetail([...cashDetail, detail]);
+  const removeCashDetail = (idx) =>
+    setCashdetail(cashDetail.filter((item, index) => index !== idx));
+
+  // effect
+  useEffect(() => {}, [tcarDetail.items]);
+
+  // total
+  const totalCashDetail = cashDetail.reduce(function (
+    accumulator,
+    currentValue,
+  ) {
+    return accumulator + Number(currentValue.cashRequested);
+  },
+  0);
 
   return (
     <View style={styles.container}>
@@ -363,22 +458,36 @@ export default function TCARHeader() {
           ) : (
             <View style={styles.tcarDetailContainer}>
               {tcarDetail.items.map((item, index) => {
-                // return <Text>Date: {item.date}</Text>;
                 const date = moment(item.date).format('DD/MM/YYYY');
                 return (
                   <View style={styles.itemContainer} key={index}>
                     <Text>Date: {date}</Text>
-                    <Text>TransportMethod: {item.transportMethod}</Text>
+                    <Text>Transport Method: {item.transportMethod}</Text>
                     <Text>Description: {item.description}</Text>
                     <Text>Purpose: {item.purpose}</Text>
                     <View style={styles.buttonItemContainer}>
                       <View style={styles.buttonItem}>
-                        <Button small rounded danger>
+                        <Button
+                          small
+                          rounded
+                          danger
+                          onPress={() => removeTCARDetail(index)}>
                           <Text>Delete</Text>
                         </Button>
                       </View>
                       <View style={styles.buttonItem}>
-                        <Button small rounded success>
+                        <Button
+                          small
+                          rounded
+                          success
+                          onPress={() => {
+                            setDetailForm(item);
+                            setEditedvalue({
+                              index: index,
+                              type: 'cardetail',
+                            });
+                            setShowTCARDetail(true);
+                          }}>
                           <Text>Edit</Text>
                         </Button>
                       </View>
@@ -389,7 +498,22 @@ export default function TCARHeader() {
             </View>
           )}
           <View style={styles.buttonDetailContainer}>
-            <Button style={styles.buttonHeader} info rounded>
+            <Button
+              style={styles.buttonHeader}
+              info
+              onPress={() => {
+                setDetailForm({
+                  date: new Date(),
+                  transportMethod: '',
+                  description: '',
+                  purpose: '',
+                });
+                setEditedvalue({
+                  index: -1,
+                  type: '',
+                });
+                setShowTCARDetail(true);
+              }}>
               <Text>ADD</Text>
             </Button>
           </View>
@@ -398,26 +522,41 @@ export default function TCARHeader() {
         {/* CASH Detail */}
         <View style={styles.formContainer}>
           <Text style={styles.sectionTitle}>CASH Detail</Text>
-          {cashdetail.length === 0 ? (
+          {cashDetail.length === 0 ? (
             <View style={styles.tcarDetailContainer}>
               <Text style={styles.noTcarDetail}>Please add Cash Detail</Text>
             </View>
           ) : (
             <View style={styles.tcarDetailContainer}>
-              {cashdetail.map((item, index) => {
+              {cashDetail.map((item, index) => {
                 return (
                   <View style={styles.itemContainer} key={index}>
                     <Text>Expense Type: {item.expenseType}</Text>
-                    <Text>TransportMethod: {item.currency}</Text>
-                    <Text>Description: {item.cashRequested}</Text>
+                    <Text>Currency: {item.currency}</Text>
+                    <Text>Cash Requested: {item.cashRequested}</Text>
                     <View style={styles.buttonItemContainer}>
                       <View style={styles.buttonItem}>
-                        <Button small rounded danger>
+                        <Button
+                          small
+                          rounded
+                          danger
+                          onPress={() => removeCashDetail(index)}>
                           <Text>Delete</Text>
                         </Button>
                       </View>
                       <View style={styles.buttonItem}>
-                        <Button small rounded success>
+                        <Button
+                          small
+                          rounded
+                          success
+                          onPress={() => {
+                            setCashDetailForm(item);
+                            setEditedvalue({
+                              index: index,
+                              type: 'cashdetail',
+                            });
+                            setShowCashDetailForm(true);
+                          }}>
                           <Text>Edit</Text>
                         </Button>
                       </View>
@@ -425,10 +564,25 @@ export default function TCARHeader() {
                   </View>
                 );
               })}
+              <Text style={styles.marginTotal}>Total: {totalCashDetail}</Text>
             </View>
           )}
           <View style={styles.buttonDetailContainer}>
-            <Button style={styles.buttonHeader} info rounded>
+            <Button
+              style={styles.buttonHeader}
+              info
+              onPress={() => {
+                setCashDetailForm({
+                  expenseType: '',
+                  currency: '',
+                  cashRequested: 0,
+                });
+                setEditedvalue({
+                  index: -1,
+                  type: '',
+                });
+                setShowCashDetailForm(true);
+              }}>
               <Text>ADD</Text>
             </Button>
           </View>
@@ -452,12 +606,27 @@ export default function TCARHeader() {
                     <Text>By: {item.by}</Text>
                     <View style={styles.buttonItemContainer}>
                       <View style={styles.buttonItem}>
-                        <Button small rounded danger>
+                        <Button
+                          small
+                          rounded
+                          danger
+                          onPress={() => removeNotes(index)}>
                           <Text>Delete</Text>
                         </Button>
                       </View>
                       <View style={styles.buttonItem}>
-                        <Button small rounded success>
+                        <Button
+                          small
+                          rounded
+                          success
+                          onPress={() => {
+                            setNotesForm(item);
+                            setEditedvalue({
+                              index: index,
+                              type: 'notes',
+                            });
+                            setShowNotesForm(true);
+                          }}>
                           <Text>Edit</Text>
                         </Button>
                       </View>
@@ -468,7 +637,21 @@ export default function TCARHeader() {
             </View>
           )}
           <View style={styles.buttonDetailContainer}>
-            <Button style={styles.buttonHeader} info rounded>
+            <Button
+              style={styles.buttonHeader}
+              info
+              onPress={() => {
+                setNotesForm({
+                  date: new Date(),
+                  notes: '',
+                  by: '',
+                });
+                setEditedvalue({
+                  index: -1,
+                  type: '',
+                });
+                setShowNotesForm(true);
+              }}>
               <Text>ADD</Text>
             </Button>
           </View>
@@ -493,12 +676,27 @@ export default function TCARHeader() {
                     <Text>Filename: {item.filename}</Text>
                     <View style={styles.buttonItemContainer}>
                       <View style={styles.buttonItem}>
-                        <Button small rounded danger>
+                        <Button
+                          small
+                          rounded
+                          danger
+                          onPress={() => removeAttachment(index)}>
                           <Text>Delete</Text>
                         </Button>
                       </View>
                       <View style={styles.buttonItem}>
-                        <Button small rounded success>
+                        <Button
+                          small
+                          rounded
+                          success
+                          onPress={() => {
+                            setAttachmentForm(item);
+                            setEditedvalue({
+                              index: index,
+                              type: 'attachment',
+                            });
+                            setShowAttachmentForm(true);
+                          }}>
                           <Text>Edit</Text>
                         </Button>
                       </View>
@@ -509,7 +707,20 @@ export default function TCARHeader() {
             </View>
           )}
           <View style={styles.buttonDetailContainer}>
-            <Button style={styles.buttonHeader} info rounded>
+            <Button
+              style={styles.buttonHeader}
+              info
+              onPress={() => {
+                setAttachmentForm({
+                  date: new Date(),
+                  filename: '',
+                });
+                setEditedvalue({
+                  index: -1,
+                  type: '',
+                });
+                setShowAttachmentForm(true);
+              }}>
               <Text>ADD</Text>
             </Button>
           </View>
@@ -518,21 +729,53 @@ export default function TCARHeader() {
         {/* button */}
         <View style={styles.buttoncontainer}>
           <View style={styles.buttonContent}>
-            <Button
-              onPress={handleSave}
-              style={styles.buttonHeader}
-              info
-              rounded>
+            <Button onPress={handleSave} style={styles.buttonHeader} info>
               <Text>SAVE</Text>
             </Button>
           </View>
           <View style={styles.buttonContent}>
-            <Button style={styles.buttonHeader} warning rounded>
+            <Button style={styles.buttonHeader} warning>
               <Text>CLEAR</Text>
             </Button>
           </View>
         </View>
       </ScrollView>
+      <TCARDetail
+        show={showTCARDetail}
+        setShow={setShowTCARDetail}
+        addItem={addTCARDetail}
+        updateItem={updateItem}
+        editedValue={editedValue}
+        detailForm={detailForm}
+        setDetailForm={setDetailForm}
+      />
+      <CashDetailModal
+        show={showCashDetailForm}
+        setShow={setShowCashDetailForm}
+        addItem={addCashDetail}
+        updateItem={updateItem}
+        editedValue={editedValue}
+        detailForm={cashDetailForm}
+        setDetailForm={setCashDetailForm}
+      />
+      <Notes
+        show={showNotesForm}
+        setShow={setShowNotesForm}
+        addItem={addNotes}
+        updateItem={updateItem}
+        editedValue={editedValue}
+        detailForm={notesForm}
+        setDetailForm={setNotesForm}
+      />
+      <AttachmentModal
+        show={showAttachmentForm}
+        setShow={setShowAttachmentForm}
+        addItem={addAttachment}
+        updateItem={updateItem}
+        editedValue={editedValue}
+        detailForm={attachmentForm}
+        setDetailForm={setAttachmentForm}
+      />
     </View>
   );
 }

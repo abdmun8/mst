@@ -35,17 +35,19 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function TCARDetail({
+export default function Notes({
   show,
   setShow,
+  addItem,
   editedValue,
   updateItem,
-  addItem,
   detailForm,
   setDetailForm,
 }) {
   const [isSaved, setIsSaved] = useState(false);
   const saveDetail = () => {
+    // console.log(detailForm);
+    // return;
     let valid = true;
     setIsSaved(true);
     for (let [key, value] of Object.entries(detailForm)) {
@@ -79,7 +81,7 @@ export default function TCARDetail({
       animated="true"
       visible={show}>
       <ScrollView style={styles.content}>
-        <Text style={styles.sectionTitle}>TCAR Detail</Text>
+        <Text style={styles.sectionTitle}>Notes / Remark</Text>
         <View style={styles.buttonDetailContainer}>
           <Form>
             <Item stackedLabel>
@@ -98,33 +100,23 @@ export default function TCARDetail({
               />
             </Item>
             <Item stackedLabel>
-              <Label>Transport Method</Label>
+              <Label>Notes</Label>
               <Input
-                onChangeText={(text) => setFormValue(text, 'transportMethod')}
-                value={detailForm.transportMethod}
+                onChangeText={(text) => setFormValue(text, 'notes')}
+                value={detailForm.notes}
               />
             </Item>
-            {isSaved && detailForm.transportMethod === '' ? (
+            {isSaved && detailForm.notes === '' ? (
               <Text style={styles.errorText}>Please fill this field</Text>
             ) : null}
             <Item stackedLabel>
-              <Label>Description</Label>
+              <Label>By</Label>
               <Input
-                onChangeText={(text) => setFormValue(text, 'description')}
-                value={detailForm.description}
+                onChangeText={(text) => setFormValue(text, 'by')}
+                value={detailForm.by}
               />
             </Item>
-            {isSaved && detailForm.description === '' ? (
-              <Text style={styles.errorText}>Please fill this field</Text>
-            ) : null}
-            <Item stackedLabel>
-              <Label>Purpose</Label>
-              <Input
-                onChangeText={(text) => setFormValue(text, 'purpose')}
-                value={detailForm.purpose}
-              />
-            </Item>
-            {isSaved && detailForm.purpose === '' ? (
+            {isSaved && detailForm.by === '' ? (
               <Text style={styles.errorText}>Please fill this field</Text>
             ) : null}
           </Form>
